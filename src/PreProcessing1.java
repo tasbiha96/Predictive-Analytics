@@ -16,7 +16,7 @@ public class PreProcessing1 {
        this.stopwords = stopwords;
     }
     
-     String removeStopwords(String[] words){
+     public String removeStopwords(String[] words){
         StringBuilder sb1 = new StringBuilder();
      	for(String word:words){
      		if(!stopwords.contains(word)){
@@ -31,7 +31,8 @@ public class PreProcessing1 {
         
         List<String> tokens = new ArrayList<String>();
 
-//        Tokenization, Generating POS Tags, Lemma, NER Tags
+//      Tokenization, Generating POS Tags, Lemma, NER Tags
+        
         Properties props = new Properties();
         props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner");
         
@@ -40,8 +41,8 @@ public class PreProcessing1 {
         
         pipeline.annotate(doc);
         
-        String tokensLemmaNERTags = doc.tokens().stream().map(token -> "("+token.word()+","+token.lemma()+","+token.ner()+")")
-       		.collect(Collectors.joining(" "));
+//        String tokensLemmaNERTags = doc.tokens().stream().map(token -> "("+token.word()+","+token.lemma()+","+token.ner()+")")
+//       		.collect(Collectors.joining(" "));
 //        System.out.println("tokensLemmaNERTags: " + tokensLemmaNERTags);
         
         // Applying NER
@@ -55,7 +56,7 @@ public class PreProcessing1 {
 
         	CoreLabel tok;
         	if(i<doc.tokens().size()) {
-        		tok= doc.tokens().get(i);
+        		tok = doc.tokens().get(i);
         		currTag = tok.ner();
         		currWord = tok.word();
         	}
@@ -93,12 +94,53 @@ public class PreProcessing1 {
         	}
         }
         System.out.println("After NER_tags: \n"+tokens+"\n\n");
-
-        //tokens.removeIf(s -> s == null || "".equals(s));
-        return tokens;
-        
-        }
+        return tokens;     
     }
+    
+    public void slidingWindow(Map<String, List<String>> map) {
+    	Map<String,Integer> freq = new HashMap<>();
+    	List<String> list = new ArrayList<>();
+    	   getNGrams(map,freq,2);
+    	   getNGrams(map,freq,3);
+           for (Map.Entry<String, Integer> entry: freq.entrySet()) {
+               if (entry.getValue()>=10) {
+            	   String modifiedNGram = entry.getKey().replace(" ", "_");
+                   list.add(modifiedNGram);
+               }
+           }
+
+           for (Map.Entry<String, List<String>> entry: map.entrySet()) {
+
+               String modifiedTokens =  String.join(" ", entry.getValue());
+
+
+               List<String> tokensList = Arrays.asList(modifiedTokens.split(" "));
+               entry.setValue(tokensList);
+           }
+       }
+    
+    
+    public void getNGrams(Map<String, List<String>> map,Map<String, Integer> freq, int n){
+    	for (Map.Entry<String, List<String>> entry: map.entrySet()) {
+ 		   String[] array = entry.getValue().toArray(new String[0]);	
+ 	    	List<String> nGrams = new ArrayList<String>();
+ 	    	for (int i = 0; i< array.length - n + 1;i++) {
+ 			    StringBuilder sb = new StringBuilder();
+ 				sb.append(array[i]);
+ 				for(int j = i+1; j< i+n;j++) {
+ 					sb.append(" " + array[j]);
+ 				}
+ 				nGrams.add(sb.toString());
+ 				
+            for (String ngram: nGrams) {
+                freq.put(ngram, freq.getOrDefault(ngram, 0) + 1);
+            	}
+ 	    	}
+    	}
+    }
+  }
+
+	
 
     
     
