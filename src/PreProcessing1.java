@@ -93,7 +93,6 @@ public class PreProcessing1 {
         		//}
         	}
         }
-        System.out.println("After NER_tags: \n"+tokens+"\n\n");
         return tokens;     
     }
     
@@ -104,18 +103,22 @@ public class PreProcessing1 {
     	   getNGrams(map,freq,3);
            for (Map.Entry<String, Integer> entry: freq.entrySet()) {
                if (entry.getValue()>=10) {
-            	   String modifiedNGram = entry.getKey().replace(" ", "_");
-                   list.add(modifiedNGram);
+                   list.add(entry.getKey());
                }
            }
-
+//           System.out.println("LIST: " + list);
+           
            for (Map.Entry<String, List<String>> entry: map.entrySet()) {
 
                String modifiedTokens =  String.join(" ", entry.getValue());
-
+               modifiedTokens.trim();
+               for(String ngram : list){ 
+            	    String ref = ngram.replace(" ","_");
+            	    modifiedTokens = modifiedTokens.replace(ngram,ref);
+               }
 
                List<String> tokensList = Arrays.asList(modifiedTokens.split(" "));
-               entry.setValue(tokensList);
+               map.put(entry.getKey(), tokensList);
            }
        }
     
@@ -130,15 +133,18 @@ public class PreProcessing1 {
  				for(int j = i+1; j< i+n;j++) {
  					sb.append(" " + array[j]);
  				}
- 				nGrams.add(sb.toString());
+ 				nGrams.add((sb.toString()).trim());
+ 	    	}
+ 				
  				
             for (String ngram: nGrams) {
-                freq.put(ngram, freq.getOrDefault(ngram, 0) + 1);
+            	Integer count = freq.getOrDefault(ngram, 0);
+                freq.put(ngram, count + 1);
             	}
  	    	}
     	}
     }
-  }
+
 
 	
 
